@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 
 function useTodoApi() {
   const [todos, setTodos] = useState([]);
-  const apiUrl = "http://localhost:5000/api";
+  const apiUrl = "http://localhost:5555/api";
 
   const getTodos = async () => {
     try {
