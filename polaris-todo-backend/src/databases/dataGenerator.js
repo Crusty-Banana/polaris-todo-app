@@ -1,5 +1,5 @@
 const faker = require("faker");
-const { add, deleteAllData } = require("./todoRepository");
+const { add, removeAll } = require("./todoRepository");
 
 async function generateRandomTodos() {
   try {
@@ -16,7 +16,7 @@ async function generateRandomTodos() {
 }
 
 (async () => {
-  await deleteAllData();
+  await removeAll();
   await generateRandomTodos();
   console.log("data added!");
 })();

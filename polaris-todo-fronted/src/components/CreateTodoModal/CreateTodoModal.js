@@ -1,7 +1,7 @@
 import { Modal, TextField } from "@shopify/polaris";
 import { useState, useCallback } from "react";
 
-function CreateModal({ addTodo, open, setOpen }) {
+function CreateTodoModal({ addTodo, open, setOpen }) {
   const [todoName, setTodoName] = useState();
 
   const handleAdd = useCallback(() => {
@@ -44,4 +44,4 @@ function CreateModal({ addTodo, open, setOpen }) {
   );
 }
 
-export default CreateModal;
+export default CreateTodoModal;

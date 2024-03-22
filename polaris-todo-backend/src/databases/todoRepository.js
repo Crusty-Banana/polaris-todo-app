@@ -6,32 +6,21 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
+const ref = db.collection("todos");
 
 async function getAll({ limit, orderBy }) {
-  let todos = await db.collection("todos").get();
+  let todos = await ref
+    .orderBy("text", orderBy)
+    .limit(Number(limit) || 10)
+    .get();
   todos = todos.docs.map((doc) => {
     return { id: doc.id, ...doc.data() };
   });
-  if (orderBy) {
-    if (orderBy === "desc") {
-      todos.sort((a, b) => {
-        return new Date(b.createdAt) - new Date(a.createdAt);
-      });
-    }
-    if (orderBy === "asc") {
-      todos.sort((a, b) => {
-        return new Date(a.createdAt) - new Date(b.createdAt);
-      });
-    }
-  }
-  if (limit) {
-    todos = todos.slice(0, limit);
-  }
   return todos;
 }
 
 async function getOne({ id, fields }) {
-  const todo = (await db.collection("todos").doc(id.toString()).get()).data();
+  const todo = (await ref.doc(id.toString()).get()).data();
   if (todo) {
     const fieldsArray = fields ? fields.split(",") : Object.keys(todo);
     let requestedTodo = {};
@@ -44,38 +33,25 @@ async function getOne({ id, fields }) {
 }
 
 async function add(data) {
-  try {
-    await db.collection("todos").add(data);
-    return data;
-  } catch (e) {
-    console.log("Failure to add todos", e);
-  }
+  await ref.add(data);
+  return data;
 }
 
 async function change(id, data) {
-  const todo = (await db.collection("todos").doc(id.toString()).get()).data();
-  console.log(data, todo, { ...todo, ...data });
-  await db
-    .collection("todos")
-    .doc(id.toString())
-    .set({ ...todo, ...data });
+  const todo = (await ref.doc(id.toString()).get()).data();
+  await ref.doc(id.toString()).update(data);
   return data;
 }
 
 async function remove(id) {
-  await db.collection("todos").doc(id.toString()).delete();
+  await ref.doc(id).delete();
   return;
 }
 
-async function deleteAllData() {
-  await db
-    .collection("todos")
-    .listDocuments()
-    .then((val) => {
-      val.map((val) => {
-        val.delete();
-      });
-    });
+async function removeAll() {
+  (await ref.get()).docs.map(async (doc) => {
+    await ref.doc(doc.id).delete();
+  });
 }
 module.exports = {
   db,
@@ -84,5 +60,5 @@ module.exports = {
   add,
   change,
   remove,
-  deleteAllData,
+  removeAll,
 };

@@ -21,19 +21,16 @@ function TodoList({
 }) {
   const [selectedItems, setSelectedItems] = useState([]);
   const handleBulk = useCallback(
-    (actionTodo) => {
-      selectedItems.forEach((item) => actionTodo(item));
+    async (actionTodo) => {
+      selectedItems.forEach(async (item) => await actionTodo(item));
       setSelectedItems([]);
     },
     [selectedItems]
   );
 
   useEffect(() => {
-    setTimeout(() => {
-      console.log("Waited for 1 seconds!");
-      getTodos();
-    }, 1000);
-  }, []);
+    getTodos();
+  }, [getTodos]);
 
   const renderTodo = useCallback(({ id, text, isCompleted }) => {
     return (
@@ -44,8 +41,10 @@ function TodoList({
           </Text>
           <InlineStack align="space-between" gap={200}>
             <BorderedText isCompleted={isCompleted} />
-            <Button onClick={() => completeTodo(id)}>Complete</Button>
-            <Button onClick={() => removeTodo(id)} tone="critical">
+            <Button onClick={async () => await completeTodo(id)}>
+              Complete
+            </Button>
+            <Button onClick={async () => await removeTodo(id)} tone="critical">
               Delete
             </Button>
           </InlineStack>
@@ -77,19 +76,17 @@ function TodoList({
       />
       {selectedItems.length > 0 && (
         <Layout>
-          <Box width="270px">
-            <Card>
-              <ButtonGroup>
-                <Button onClick={() => handleBulk(completeTodo)}>
-                  Complete
-                </Button>
-                <Button onClick={() => handleBulk(incompleteTodo)}>
-                  Incomplete
-                </Button>
-                <Button onClick={() => handleBulk(removeTodo)}>Delete</Button>
-              </ButtonGroup>
-            </Card>
-          </Box>
+          <ButtonGroup>
+            <Button onClick={async () => await handleBulk(completeTodo)}>
+              Complete
+            </Button>
+            <Button onClick={async () => await handleBulk(incompleteTodo)}>
+              Incomplete
+            </Button>
+            <Button onClick={async () => await handleBulk(removeTodo)}>
+              Delete
+            </Button>
+          </ButtonGroup>
         </Layout>
       )}
     </BlockStack>

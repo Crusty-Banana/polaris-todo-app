@@ -1,25 +1,25 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
-function useTodoApi() {
-  const [todos, setTodos] = useState([]);
-  const apiUrl = "http://localhost:5555/api";
+function useFetchApi({ url = "/todos" }) {
+  const [items, setItems] = useState([]);
+  const apiUrl = "http://localhost:5555/api" + url;
 
-  const getTodos = async () => {
+  const getItems = async () => {
     try {
-      const response = await fetch(apiUrl + "/todos");
+      const response = await fetch(apiUrl);
       if (!response.ok) {
         throw new Error("Todos not founded!");
       }
       const data = await response.json();
-      setTodos([...data.data]);
+      setItems([...data.data]);
     } catch (e) {
       console.log(e);
     }
   };
 
-  const addTodo = async (text) => {
+  const addItem = async (text) => {
     try {
-      const response = await fetch(apiUrl + "/todos", {
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -33,14 +33,14 @@ function useTodoApi() {
       if (!response.ok) {
         throw new Error("Failed to add todo");
       }
-      getTodos();
+      await getItems();
     } catch (e) {
       console.log(e);
     }
   };
 
-  const changeTodo = async (id, status) => {
-    const response = await fetch(apiUrl + "/todo/" + id.toString(), {
+  const changeItem = async (id, status) => {
+    const response = await fetch(apiUrl + "/" + id, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -53,39 +53,39 @@ function useTodoApi() {
     if (!response.ok) {
       throw new Error("Failed to changes todo's status");
     }
-    getTodos();
+    await getItems();
   };
 
-  const completeTodo = (id) => {
-    changeTodo(id, true);
+  const completeItem = async (id) => {
+    await changeItem(id, true);
   };
 
-  const incompleteTodo = (id) => {
-    changeTodo(id, false);
+  const incompleteItem = async (id) => {
+    await changeItem(id, false);
   };
 
-  const removeTodo = async (id) => {
+  const removeItem = async (id) => {
     try {
-      const response = await fetch(apiUrl + "/todo/" + id.toString(), {
-        method: "DEL",
+      const response = await fetch(apiUrl + "/" + id.toString(), {
+        method: "DELETE",
       });
 
       if (!response.ok) {
         throw new Error("Failed to delete todo");
       }
-      getTodos();
+      await getItems();
     } catch (e) {
       console.log(e);
     }
   };
   return {
-    todos,
-    addTodo,
-    completeTodo,
-    removeTodo,
-    incompleteTodo,
-    getTodos,
+    items,
+    addItem,
+    completeItem,
+    removeItem,
+    incompleteItem,
+    getItems,
   };
 }
 
-export default useTodoApi;
+export default useFetchApi;
