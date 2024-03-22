@@ -3,7 +3,6 @@ import {
   InlineStack,
   ResourceItem,
   Text,
-  Card,
   ButtonGroup,
   Button,
   Box,
@@ -30,7 +29,7 @@ function TodoList({
 
   useEffect(() => {
     getTodos();
-  }, [getTodos]);
+  }, []);
 
   const renderTodo = useCallback(({ id, text, isCompleted }) => {
     return (

@@ -1,5 +1,5 @@
-import { ActionList, AppProvider, Frame, TopBar } from "@shopify/polaris";
-import TodoPage from "../Page/Page";
+import { ActionList, Frame, TopBar } from "@shopify/polaris";
+import TodoPage from "../TodoPage/TodoPage";
 
 import { useState, useCallback, useRef } from "react";
 
