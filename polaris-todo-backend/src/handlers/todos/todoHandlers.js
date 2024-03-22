@@ -5,7 +5,8 @@ const {
   change: updateOneTodo,
   remove: deleteOneTodo,
 } = require("../../databases/todoRepository");
-
+//TODO: add loading, add disable action, filter api call, add loading button and disable other actions, change to incomplete when complete, add sort by createdAt, add error when field is empty
+// change layout to block stack or something
 async function getTodos(ctx) {
   try {
     const todos = await getAllTodos(ctx.request.query);

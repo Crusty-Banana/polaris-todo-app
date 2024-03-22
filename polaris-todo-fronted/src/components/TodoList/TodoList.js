@@ -7,7 +7,7 @@ import {
   Button,
   Box,
   BlockStack,
-  Layout,
+  Spinner,
 } from "@shopify/polaris";
 import { useCallback, useState, useEffect } from "react";
 
@@ -31,7 +31,8 @@ function TodoList({
     getTodos();
   }, []);
 
-  const renderTodo = useCallback(({ id, text, isCompleted }) => {
+  const TodoItem = ({ id, text, isCompleted }) => {
+    const [loading, setLoading] = useState(false);
     return (
       <ResourceItem id={id} text={text}>
         <InlineStack align="space-between">
@@ -40,16 +41,37 @@ function TodoList({
           </Text>
           <InlineStack align="space-between" gap={200}>
             <BorderedText isCompleted={isCompleted} />
-            <Button onClick={async () => await completeTodo(id)}>
-              Complete
+            <Button
+              disabled={loading}
+              onClick={async () => {
+                setLoading(true);
+                (await isCompleted)
+                  ? await incompleteTodo(id)
+                  : await completeTodo(id);
+                setLoading(false);
+              }}
+            >
+              {isCompleted ? "Incomplete" : "Complete"}
             </Button>
-            <Button onClick={async () => await removeTodo(id)} tone="critical">
+            <Button
+              disabled={loading}
+              onClick={async () => {
+                setLoading(true);
+                await removeTodo(id);
+                setLoading(false);
+              }}
+              tone="critical"
+            >
               Delete
             </Button>
+            {loading && <Spinner size="small" />}
           </InlineStack>
         </InlineStack>
       </ResourceItem>
     );
+  };
+  const renderTodo = useCallback(({ id, text, isCompleted }) => {
+    return <TodoItem id={id} text={text} isCompleted={isCompleted} />;
   }, []);
 
   function BorderedText({ isCompleted }) {
@@ -74,7 +96,7 @@ function TodoList({
         selectable={true}
       />
       {selectedItems.length > 0 && (
-        <Layout>
+        <InlineStack align="center">
           <ButtonGroup>
             <Button onClick={async () => await handleBulk(completeTodo)}>
               Complete
@@ -86,7 +108,7 @@ function TodoList({
               Delete
             </Button>
           </ButtonGroup>
-        </Layout>
+        </InlineStack>
       )}
     </BlockStack>
   );

@@ -1,16 +1,24 @@
-import { Modal, TextField } from "@shopify/polaris";
-import { useState, useCallback } from "react";
+import { Modal, TextField, Spinner, InlineError, Text } from "@shopify/polaris";
+import React, { useState, useCallback } from "react";
 
 function CreateTodoModal({ addTodo, open, setOpen }) {
   const [todoName, setTodoName] = useState();
+  const [loading, setLoading] = useState(false);
+  const [missingTitle, setMissingTitle] = useState(false);
 
-  const handleAdd = useCallback(() => {
-    if (todoName) addTodo(todoName);
-    setTodoName("");
-    setOpen(false);
+  const handleAdd = useCallback(async () => {
+    setLoading(true);
+    if (todoName) {
+      await addTodo(todoName);
+      setTodoName("");
+      setOpen(false);
+      setMissingTitle(false);
+    } else setMissingTitle(true);
+    setLoading(false);
   }, [todoName, setTodoName, setOpen, addTodo]);
 
   const handleClose = useCallback(() => {
+    setMissingTitle(false);
     setTodoName("");
     setOpen(false);
   }, [setTodoName, setOpen]);
@@ -32,13 +40,22 @@ function CreateTodoModal({ addTodo, open, setOpen }) {
       ]}
     >
       <Modal.Section>
-        <TextField
-          label="title"
-          value={todoName}
-          onChange={(newName) => {
-            setTodoName(newName);
-          }}
-        />
+        {loading ? (
+          <Spinner />
+        ) : (
+          <TextField
+            label={
+              <Text>
+                Title
+                {missingTitle && <InlineError message="Title is required" />}
+              </Text>
+            }
+            value={todoName}
+            onChange={(newName) => {
+              setTodoName(newName);
+            }}
+          />
+        )}
       </Modal.Section>
     </Modal>
   );
