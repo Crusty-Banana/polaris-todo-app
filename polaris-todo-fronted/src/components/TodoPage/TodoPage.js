@@ -14,6 +14,8 @@ function TodoPage() {
     addItem: addTodo,
     incompleteItem: incompleteTodo,
     items: todos,
+    sortValue,
+    setSortValue,
   } = useFetchApi("/todos");
   const handleCreate = useCallback(() => {
     setOpen(true);
@@ -31,6 +33,8 @@ function TodoPage() {
         completeTodo={completeTodo}
         removeTodo={removeTodo}
         incompleteTodo={incompleteTodo}
+        sortValue={sortValue}
+        setSortValue={setSortValue}
       />
     </Page>
   );

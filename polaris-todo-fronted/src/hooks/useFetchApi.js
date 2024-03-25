@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 function useFetchApi({ url = "/todos" }) {
   const [items, setItems] = useState([]);
+  const [sortValue, setSortValue] = useState("desc");
   const apiUrl = "http://localhost:5555/api" + url;
 
-  const getItems = async () => {
+  const getItems = useCallback(async () => {
     try {
-      const response = await fetch(apiUrl);
+      let fetchUrl = apiUrl;
+      if (sortValue) fetchUrl += "?orderBy=" + sortValue;
+      const response = await fetch(fetchUrl);
       if (!response.ok) {
         throw new Error("Todos not founded!");
       }
@@ -15,7 +18,7 @@ function useFetchApi({ url = "/todos" }) {
     } catch (e) {
       console.log(e);
     }
-  };
+  }, [sortValue]);
 
   const addItem = async (text) => {
     try {
@@ -85,6 +88,8 @@ function useFetchApi({ url = "/todos" }) {
     removeItem,
     incompleteItem,
     getItems,
+    sortValue,
+    setSortValue,
   };
 }
 

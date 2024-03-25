@@ -17,62 +17,74 @@ function TodoList({
   completeTodo,
   removeTodo,
   incompleteTodo,
+  sortValue,
+  setSortValue,
 }) {
   const [selectedItems, setSelectedItems] = useState([]);
+  const [loading, setLoading] = useState({});
   const handleBulk = useCallback(
     async (actionTodo) => {
-      selectedItems.forEach(async (item) => await actionTodo(item));
+      selectedItems.forEach((item) =>
+        setLoading((prev) => ({ ...prev, [item]: true }))
+      );
+
       setSelectedItems([]);
+      const promises = selectedItems.map(actionTodo);
+      await Promise.all(promises);
+
+      selectedItems.forEach((item) =>
+        setLoading((prev) => ({ ...prev, [item]: false }))
+      );
     },
     [selectedItems]
   );
 
   useEffect(() => {
     getTodos();
-  }, []);
+  }, [sortValue]);
 
-  const TodoItem = ({ id, text, isCompleted }) => {
-    const [loading, setLoading] = useState(false);
-    return (
-      <ResourceItem id={id} text={text}>
-        <InlineStack align="space-between">
-          <Text variant="bodyMd" fontWeight="bold" as="h3">
-            {text}
-          </Text>
-          <InlineStack align="space-between" gap={200}>
-            <BorderedText isCompleted={isCompleted} />
-            <Button
-              disabled={loading}
-              onClick={async () => {
-                setLoading(true);
-                (await isCompleted)
-                  ? await incompleteTodo(id)
-                  : await completeTodo(id);
-                setLoading(false);
-              }}
-            >
-              {isCompleted ? "Incomplete" : "Complete"}
-            </Button>
-            <Button
-              disabled={loading}
-              onClick={async () => {
-                setLoading(true);
-                await removeTodo(id);
-                setLoading(false);
-              }}
-              tone="critical"
-            >
-              Delete
-            </Button>
-            {loading && <Spinner size="small" />}
+  const renderTodo = useCallback(
+    ({ id, text, isCompleted }) => {
+      console.log(loading[id]);
+      return (
+        <ResourceItem id={id} text={text}>
+          <InlineStack align="space-between">
+            <Text variant="bodyMd" fontWeight="bold" as="h3">
+              {text}
+            </Text>
+            <InlineStack align="space-between" gap={200}>
+              <BorderedText isCompleted={isCompleted} />
+              <Button
+                disabled={loading[id]}
+                onClick={async () => {
+                  setLoading((prev) => ({ ...prev, [id]: true }));
+                  isCompleted
+                    ? await incompleteTodo(id)
+                    : await completeTodo(id);
+                  setLoading((prev) => ({ ...prev, [id]: false }));
+                }}
+              >
+                {isCompleted ? "Incomplete" : "Complete"}
+              </Button>
+              <Button
+                disabled={loading[id]}
+                onClick={async () => {
+                  setLoading((prev) => ({ ...prev, [id]: true }));
+                  await removeTodo(id);
+                  setLoading((prev) => ({ ...prev, [id]: false }));
+                }}
+                tone="critical"
+              >
+                Delete
+              </Button>
+              {loading[id] && <Spinner size="small" />}
+            </InlineStack>
           </InlineStack>
-        </InlineStack>
-      </ResourceItem>
-    );
-  };
-  const renderTodo = useCallback(({ id, text, isCompleted }) => {
-    return <TodoItem id={id} text={text} isCompleted={isCompleted} />;
-  }, []);
+        </ResourceItem>
+      );
+    },
+    [sortValue, loading]
+  );
 
   function BorderedText({ isCompleted }) {
     const text = isCompleted ? "Complete" : "Incomplete";
@@ -85,7 +97,6 @@ function TodoList({
       </Box>
     );
   }
-
   return (
     <BlockStack gap="500">
       <ResourceList
@@ -94,6 +105,15 @@ function TodoList({
         selectedItems={selectedItems}
         onSelectionChange={setSelectedItems}
         selectable={true}
+        sortValue={sortValue}
+        sortOptions={[
+          { label: "Newest update", value: "desc" },
+          { label: "Oldest update", value: "asc" },
+        ]}
+        onSortChange={(selected) => {
+          setSortValue(selected);
+          console.log(`Sort option changed to ${selected}.`);
+        }}
       />
       {selectedItems.length > 0 && (
         <InlineStack align="center">

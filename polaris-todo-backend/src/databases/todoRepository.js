@@ -10,7 +10,7 @@ const ref = db.collection("todos");
 
 async function getAll({ limit, orderBy }) {
   let todos = await ref
-    .orderBy("text", orderBy)
+    .orderBy("updatedAt", orderBy)
     .limit(Number(limit) || 10)
     .get();
   todos = todos.docs.map((doc) => {
@@ -33,13 +33,19 @@ async function getOne({ id, fields }) {
 }
 
 async function add(data) {
-  await ref.add(data);
+  await ref.add({
+    ...data,
+    updatedAt: admin.firestore.Timestamp.fromDate(new Date()),
+  });
   return data;
 }
 
 async function change(id, data) {
   const todo = (await ref.doc(id.toString()).get()).data();
-  await ref.doc(id.toString()).update(data);
+  await ref.doc(id.toString()).update({
+    ...data,
+    updatedAt: admin.firestore.Timestamp.fromDate(new Date()),
+  });
   return data;
 }
 
