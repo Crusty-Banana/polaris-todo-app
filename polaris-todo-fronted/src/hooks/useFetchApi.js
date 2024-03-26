@@ -36,13 +36,17 @@ function useFetchApi({ url = "/todos" }) {
       if (!response.ok) {
         throw new Error("Failed to add todo");
       }
-      await getItems();
     } catch (e) {
       console.log(e);
     }
   };
 
   const changeItem = async (id, status) => {
+    const item = {}; //items.find((item) => item.id === id);
+    console.log(items);
+    if (item.isCompleted === status) {
+      return { message: "Item is already completed/incompleted" };
+    }
     const response = await fetch(apiUrl + "/" + id, {
       method: "PUT",
       headers: {
@@ -56,7 +60,6 @@ function useFetchApi({ url = "/todos" }) {
     if (!response.ok) {
       throw new Error("Failed to changes todo's status");
     }
-    await getItems();
   };
 
   const completeItem = async (id) => {
@@ -76,7 +79,6 @@ function useFetchApi({ url = "/todos" }) {
       if (!response.ok) {
         throw new Error("Failed to delete todo");
       }
-      await getItems();
     } catch (e) {
       console.log(e);
     }

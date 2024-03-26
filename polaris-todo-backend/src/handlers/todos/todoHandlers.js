@@ -45,7 +45,6 @@ async function addTodo(ctx) {
     const todo = ctx.request.body;
     await addOneTodo(todo);
     ctx.status = 201;
-    console.log("ok");
     return (ctx.body = {
       success: true,
     });

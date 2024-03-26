@@ -22,6 +22,31 @@ function TodoList({
 }) {
   const [selectedItems, setSelectedItems] = useState([]);
   const [loading, setLoading] = useState({});
+  const [bulkButtonDisability, setBulkButtonDisability] = useState([
+    false,
+    false,
+  ]);
+
+  useEffect(() => {
+    let count = 0;
+    for (let i = 0; i < todos.length; i++) {
+      if (selectedItems.includes(todos[i].id)) {
+        if (todos[i].isCompleted === true) {
+          count++;
+        }
+      }
+    }
+    if (count === selectedItems.length) {
+      setBulkButtonDisability([true, false]);
+    }
+    if (count === 0) {
+      setBulkButtonDisability([false, true]);
+    }
+    if (count > 0 && count < selectedItems.length) {
+      setBulkButtonDisability([false, false]);
+    }
+  }, [selectedItems, todos]);
+
   const handleBulk = useCallback(
     async (actionTodo) => {
       selectedItems.forEach((item) =>
@@ -31,6 +56,7 @@ function TodoList({
       setSelectedItems([]);
       const promises = selectedItems.map(actionTodo);
       await Promise.all(promises);
+      await getTodos();
 
       selectedItems.forEach((item) =>
         setLoading((prev) => ({ ...prev, [item]: false }))
@@ -45,7 +71,6 @@ function TodoList({
 
   const renderTodo = useCallback(
     ({ id, text, isCompleted }) => {
-      console.log(loading[id]);
       return (
         <ResourceItem id={id} text={text}>
           <InlineStack align="space-between">
@@ -61,6 +86,7 @@ function TodoList({
                   isCompleted
                     ? await incompleteTodo(id)
                     : await completeTodo(id);
+                  await getTodos();
                   setLoading((prev) => ({ ...prev, [id]: false }));
                 }}
               >
@@ -71,7 +97,8 @@ function TodoList({
                 onClick={async () => {
                   setLoading((prev) => ({ ...prev, [id]: true }));
                   await removeTodo(id);
-                  setLoading((prev) => ({ ...prev, [id]: false }));
+                  await getTodos();
+                  delete loading[id];
                 }}
                 tone="critical"
               >
@@ -97,6 +124,7 @@ function TodoList({
       </Box>
     );
   }
+
   return (
     <BlockStack gap="500">
       <ResourceList
@@ -118,10 +146,16 @@ function TodoList({
       {selectedItems.length > 0 && (
         <InlineStack align="center">
           <ButtonGroup>
-            <Button onClick={async () => await handleBulk(completeTodo)}>
+            <Button
+              onClick={async () => await handleBulk(completeTodo)}
+              disabled={bulkButtonDisability[0]}
+            >
               Complete
             </Button>
-            <Button onClick={async () => await handleBulk(incompleteTodo)}>
+            <Button
+              onClick={async () => await handleBulk(incompleteTodo)}
+              disabled={bulkButtonDisability[1]}
+            >
               Incomplete
             </Button>
             <Button onClick={async () => await handleBulk(removeTodo)}>

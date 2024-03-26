@@ -26,7 +26,12 @@ function TodoPage() {
       title="Todoes"
       primaryAction={{ content: "Create", onAction: handleCreate }}
     >
-      <CreateTodoModal addTodo={addTodo} open={open} setOpen={setOpen} />
+      <CreateTodoModal
+        addTodo={addTodo}
+        getTodos={getTodos}
+        open={open}
+        setOpen={setOpen}
+      />
       <TodoList
         todos={todos}
         getTodos={getTodos}

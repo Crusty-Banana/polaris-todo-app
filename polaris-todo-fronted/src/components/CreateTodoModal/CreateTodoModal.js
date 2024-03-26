@@ -1,7 +1,7 @@
 import { Modal, TextField, Spinner, InlineError, Text } from "@shopify/polaris";
 import React, { useState, useCallback } from "react";
 
-function CreateTodoModal({ addTodo, open, setOpen }) {
+function CreateTodoModal({ addTodo, getTodos, open, setOpen }) {
   const [todoName, setTodoName] = useState();
   const [loading, setLoading] = useState(false);
   const [missingTitle, setMissingTitle] = useState(false);
@@ -10,6 +10,7 @@ function CreateTodoModal({ addTodo, open, setOpen }) {
     setLoading(true);
     if (todoName) {
       await addTodo(todoName);
+      await getTodos();
       setTodoName("");
       setOpen(false);
       setMissingTitle(false);
