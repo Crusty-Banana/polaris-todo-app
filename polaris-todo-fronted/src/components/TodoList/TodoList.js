@@ -8,6 +8,7 @@ import {
   Box,
   BlockStack,
   Spinner,
+  Toast,
 } from "@shopify/polaris";
 import { useCallback, useState, useEffect } from "react";
 
@@ -26,7 +27,7 @@ function TodoList({
     false,
     false,
   ]);
-
+  const [toastActive, setToastActive] = useState({});
   useEffect(() => {
     let count = 0;
     for (let i = 0; i < todos.length; i++) {
@@ -48,9 +49,9 @@ function TodoList({
   }, [selectedItems, todos]);
 
   const handleBulk = useCallback(
-    async (actionTodo) => {
+    async (actionTodo, action) => {
       selectedItems.forEach((item) =>
-        setLoading((prev) => ({ ...prev, [item]: true }))
+        setLoading((prev) => ({ ...prev, [item]: action }))
       );
 
       setSelectedItems([]);
@@ -58,11 +59,17 @@ function TodoList({
       await Promise.all(promises);
       await getTodos();
 
-      selectedItems.forEach((item) =>
-        setLoading((prev) => ({ ...prev, [item]: false }))
-      );
+      selectedItems.forEach((item) => {
+        if (action === "deleting") {
+          delete loading[item];
+          setToastActive((prev) => ({ ...prev, [item]: "deleted" }));
+        } else {
+          setLoading((prev) => ({ ...prev, [item]: false }));
+          setToastActive((prev) => ({ ...prev, [item]: "changed" }));
+        }
+      });
     },
-    [selectedItems]
+    [selectedItems, todos]
   );
 
   useEffect(() => {
@@ -82,35 +89,67 @@ function TodoList({
               <Button
                 disabled={loading[id]}
                 onClick={async () => {
-                  setLoading((prev) => ({ ...prev, [id]: true }));
+                  setLoading((prev) => ({ ...prev, [id]: "changing" }));
                   isCompleted
                     ? await incompleteTodo(id)
                     : await completeTodo(id);
                   await getTodos();
                   setLoading((prev) => ({ ...prev, [id]: false }));
+                  setToastActive((prev) => ({ ...prev, [id]: "changed" }));
                 }}
               >
-                {isCompleted ? "Incomplete" : "Complete"}
+                {loading[id] === "changing" ? (
+                  <Spinner size="small" />
+                ) : isCompleted ? (
+                  "Incomplete"
+                ) : (
+                  "Complete"
+                )}
               </Button>
               <Button
                 disabled={loading[id]}
                 onClick={async () => {
-                  setLoading((prev) => ({ ...prev, [id]: true }));
+                  setLoading((prev) => ({ ...prev, [id]: "deleting" }));
                   await removeTodo(id);
                   await getTodos();
                   delete loading[id];
+                  setToastActive((prev) => ({ ...prev, [id]: "deleted" }));
                 }}
                 tone="critical"
               >
-                Delete
+                {loading[id] === "deleting" ? (
+                  <Spinner size="small" />
+                ) : (
+                  "Delete"
+                )}
               </Button>
-              {loading[id] && <Spinner size="small" />}
+              {/* {loading[id] && <Spinner size="small" />} */}
             </InlineStack>
           </InlineStack>
+          {toastActive[id] === "changed" ? (
+            <Toast
+              content={
+                "Todo " +
+                id +
+                (isCompleted ? " is completed" : " is incompleted")
+              }
+              onDismiss={() =>
+                setToastActive((prev) => ({ ...prev, [id]: false }))
+              }
+            />
+          ) : null}
+          {toastActive[id] === "deleted" ? (
+            <Toast
+              content={"Todo " + id + " deleted"}
+              onDismiss={() =>
+                setToastActive((prev) => ({ ...prev, [id]: false }))
+              }
+            />
+          ) : null}
         </ResourceItem>
       );
     },
-    [sortValue, loading]
+    [sortValue, loading, toastActive]
   );
 
   function BorderedText({ isCompleted }) {
@@ -147,18 +186,20 @@ function TodoList({
         <InlineStack align="center">
           <ButtonGroup>
             <Button
-              onClick={async () => await handleBulk(completeTodo)}
+              onClick={async () => await handleBulk(completeTodo, "changing")}
               disabled={bulkButtonDisability[0]}
             >
               Complete
             </Button>
             <Button
-              onClick={async () => await handleBulk(incompleteTodo)}
+              onClick={async () => await handleBulk(incompleteTodo, "changing")}
               disabled={bulkButtonDisability[1]}
             >
               Incomplete
             </Button>
-            <Button onClick={async () => await handleBulk(removeTodo)}>
+            <Button
+              onClick={async () => await handleBulk(removeTodo, "deleting")}
+            >
               Delete
             </Button>
           </ButtonGroup>
